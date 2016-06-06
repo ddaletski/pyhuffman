@@ -1,0 +1,90 @@
+This project
+
+Search
+core / libmotion · Merge Requests
+GitLab
+ Go to group
+ Project
+ Activity
+ Files
+ Commits
+ Graphs
+ Milestones
+ Merge Requests 1
+ Members
+ Labels
+ Forks
+Profile
+DaletskiDenis
+Open  Merge Request !20 opened about an hour ago byDenis Daletski
+Close Edit
+solved problem with absence of first frame got from subtractor
+ Check out branch   Download as 
+Request to merge first_frame into master
+Accept Merge Request The source branch will be removed.  Modify commit message
+You can also accept this merge request manually using the command line.
+Discussion 0  Commits 1  Changes 2
+Hide whitespace changes InlineSide-by-side
+Showing 2 changed files with 10 additions and 3 deletions
+ async_background_subtractor.cc  Edit View file @e07f954
+...	...
+@@ -11,8 +11,8 @@ static void destroy_mat(void *data)
+ 
+ AsyncBackgroundSubtractor::AsyncBackgroundSubtractor(cv::BackgroundSubtractor *bs,
+ double lrate):
+   backgroundSubtractor(bs), learning_rate(lrate), mask(NULL), isRunning(false),
+   isError(false), loop_thread(nullptr)
+   backgroundSubtractor(bs), learning_rate(lrate), first_frame(NULL), isRunning(false),
+	
+   isError(false), loop_thread(nullptr), first_request(true)
+ {
+   queue_init(&inQueue);
+   queue_init(&outQueue);
+...	...
+@@ -26,6 +26,8 @@ AsyncBackgroundSubtractor::~AsyncBackgroundSubtractor()
+ 
+ int AsyncBackgroundSubtractor::add(Mat *image)
+ {
+   if(first_request) 
+     first_frame = new Mat(Mat::zeros(image->size().height, image->size().width, CV_8U));
+   queue_push(&inQueue, image);
+   return 0;
+ }
+...	...
+@@ -33,6 +35,10 @@ int AsyncBackgroundSubtractor::add(Mat *image)
+ 
+ Mat* AsyncBackgroundSubtractor::getFG()
+ {
+   if(first_request) {
+     first_request = false;
+     return first_frame;
+   }
+   return (Mat*)queue_pop(&outQueue);
+ }
+ 
+...	...
+ async_background_subtractor.h  Edit View file @e07f954
+...	...
+@@ -10,7 +10,8 @@ extern "C" {
+ 
+ class AsyncBackgroundSubtractor {
+   cv::BackgroundSubtractor *backgroundSubtractor;
+   cv::Mat *mask;
+   cv::Mat *first_frame;
+   bool first_request;
+   double learning_rate;
+   queue_t inQueue;
+   queue_t outQueue;
+...	...
+20 of 20 Prev Next
+Assignee Edit
+Denis Daletski
+@DaletskiDenis
+Milestone Edit
+None
+1 participant
+
+Notifications
+Unsubscribe
+You're receiving notifications because you're subscribed to this thread.
+Reference: core/libmotion!20
