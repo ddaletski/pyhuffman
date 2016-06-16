@@ -1,4 +1,4 @@
-import huffman
+import pyhuffman
 import matplotlib.pyplot as plt
 import seaborn
 filename = "test.txt"
@@ -9,9 +9,11 @@ original = []
 compressed = []
 decompressed = []
 
+print len(string)
+
 for i in range(3):
-    comp = huffman.encode(string)
-    decomp = huffman.decode(comp)
+    comp = pyhuffman.compress(string)
+    decomp = pyhuffman.decompress(comp)
     print "equals" if decomp == string else "not equal"
     original.append(len(string))
     compressed.append(len(comp))

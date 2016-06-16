@@ -6,38 +6,40 @@
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
-static PyObject* EncodingError;
-static PyObject* DecodingError;
+static PyObject* CompressError;
+static PyObject* DecompressError;
 
-static PyObject* encode(PyObject* self, PyObject* args) {
+/* ============= compress/decompress ============ */
+
+static PyObject* compress(PyObject* self, PyObject* args) {
     uchar* in_data;
     uchar* out_data;
-    uint input_size, output_size, word_size = 8;
+    int input_size, output_size;
 
-    if(!PyArg_ParseTuple(args, "s#|i", &in_data,
-                &input_size, &word_size))
+    if(!PyArg_ParseTuple(args, "s#", &in_data,
+                &input_size))
         return NULL;
 
-    out_data = (uchar*) malloc(input_size + 392);
-    output_size = Huffman_Compress(in_data, out_data, input_size);
-    out_data = (uchar*) realloc(out_data, output_size);
-
+    if((out_data = huffman_compress(in_data, input_size,
+                &output_size)) == NULL) {
+        PyErr_SetString(CompressError, "Compressing error");
+        return NULL;
+    }
     return PyString_FromStringAndSize(out_data, output_size);
 }
 
-static PyObject* decode(PyObject* self, PyObject* args) {
+static PyObject* decompress(PyObject* self, PyObject* args) {
     uchar* in_data;
     uchar* out_data;
-    uint input_size, output_size, word_size = 8;
+    int input_size, output_size;
 
-    if(!PyArg_ParseTuple(args, "s#|i", &in_data,
-                &input_size, &word_size))
+    if(!PyArg_ParseTuple(args, "s#", &in_data,
+                &input_size))
         return NULL;
 
-    output_size = ((uint*) in_data)[0];
-    out_data = (uchar*) malloc(output_size);
-    if (Huffman_Uncompress(in_data, out_data) < 0) {
-        PyErr_SetString(DecodingError, "DecodingError");
+    output_size = ((int*) in_data)[0];
+    if ((out_data = huffman_decompress(in_data)) == NULL) {
+        PyErr_SetString(DecompressError, "decompressing error");
         return NULL;
     }
 
@@ -46,10 +48,10 @@ static PyObject* decode(PyObject* self, PyObject* args) {
 
 
 static PyMethodDef ModuleMethods[] = {
-    {"encode", encode, METH_VARARGS,
-     "encode data"},
-    {"decode", decode, METH_VARARGS,
-     "decode encoded data"},
+    {"compress", compress, METH_VARARGS,
+     "compress data"},
+    {"decompress", decompress, METH_VARARGS,
+     "decompress compressed data"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -61,16 +63,16 @@ extern "C"
 #ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC inithuffman(void)
+PyMODINIT_FUNC initpyhuffman(void)
 {
-    PyObject *module = Py_InitModule("huffman", ModuleMethods);
+    PyObject *module = Py_InitModule("pyhuffman", ModuleMethods);
     import_array();
 
-    EncodingError = PyErr_NewException("huffman.EncodingError", NULL, NULL);
-    Py_INCREF(EncodingError);
-    PyModule_AddObject(module, "EncodingError", EncodingError);
+    CompressError = PyErr_NewException("pyhuffman.CompressError", NULL, NULL);
+    Py_INCREF(CompressError);
+    PyModule_AddObject(module, "CompressError", CompressError);
 
-    DecodingError = PyErr_NewException("huffman.DecodingError", NULL, NULL);
-    Py_INCREF(DecodingError);
-    PyModule_AddObject(module, "DecodingError", DecodingError);
+    DecompressError = PyErr_NewException("pyhuffman.DecompressError", NULL, NULL);
+    Py_INCREF(DecompressError);
+    PyModule_AddObject(module, "DecompressError", DecompressError);
 }

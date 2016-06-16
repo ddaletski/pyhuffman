@@ -13,13 +13,13 @@ endif
 all: 
 	rm -rf build
 	python setup.py build
-	cp build/lib.linux-x86_64-2.7/huffman.so .
+	cp build/lib.linux-x86_64-2.7/pyhuffman.so .
 
 install:
-	cp huffman.so /usr/lib/python2.7/
+	cp pyhuffman.so /usr/lib/python2.7/
 
 uninstall:
-	rm /usr/lib/python2.7/huffman.so
+	rm /usr/lib/python2.7/pyhuffman.so
 
 clean:
 	$(RM) -rf build *.so *.o
