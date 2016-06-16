@@ -25,7 +25,10 @@ static PyObject* compress(PyObject* self, PyObject* args) {
         PyErr_SetString(CompressError, "Compressing error");
         return NULL;
     }
-    return PyString_FromStringAndSize(out_data, output_size);
+
+    PyObject* result = PyString_FromStringAndSize(out_data, output_size);
+    free(out_data);
+    return result;
 }
 
 static PyObject* decompress(PyObject* self, PyObject* args) {
@@ -43,7 +46,9 @@ static PyObject* decompress(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    return PyString_FromStringAndSize(out_data, output_size);
+    PyObject* result = PyString_FromStringAndSize(out_data, output_size);
+    free(out_data);
+    return result;
 }
 
 
